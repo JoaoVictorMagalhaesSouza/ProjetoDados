@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import seaborn as sns
-
+#https://towardsdatascience.com/predictive-analysis-rnn-lstm-and-gru-to-predict-water-consumption-e6bb3c2b4b02
 #Defining the working directory for internal functions
 import os, sys
 dir_import = os.getcwd()
@@ -88,8 +88,14 @@ result = model.predict()
 # %% Evaluate
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
-mae = mean_absolute_error(y_test, result)
-mse = mean_squared_error(y_test, result)
+predicao = output_scaler.inverse_transform(result.reshape(-1,1))
+real = output_scaler.inverse_transform(y_test.reshape(-1,1))
+mae = mean_absolute_error(predicao, real)
+mse = mean_squared_error(predicao, real)
 print('MAE: ', mae)
 print('MSE: ', mse)
+#Percentual de erro
+percentual_dif = 0
+for r,p in zip(predicao,real):
+    percentual_dif += ((r-p)/r)/100
 # %%

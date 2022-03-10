@@ -32,7 +32,7 @@ class ModelLSTM():
         self.y_train = y_train
         self.y_test = y_test
         self.model = Sequential()
-        self.model.add(LSTM(64,return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
+        self.model.add(LSTM(46,return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
     
         self.model.add(LSTM(64))
         
@@ -41,7 +41,7 @@ class ModelLSTM():
     
     def fit(self):
         print("X_train shape: ", self.X_train.shape)
-        self.model.fit(self.X_train, self.y_train, epochs=10, batch_size=32)
+        self.model.fit(self.X_train, self.y_train, epochs=100, batch_size=32)
     
     def predict(self):
         self.y_pred = self.model.predict(self.x_test).flatten()
