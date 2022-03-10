@@ -97,5 +97,6 @@ print('MSE: ', mse)
 #Percentual de erro
 percentual_dif = 0
 for r,p in zip(predicao,real):
-    percentual_dif += ((r-p)/r)/100
+    percentual_dif += (abs(r-p)/r)
+print('Percentual de erro: +-', round(percentual_dif[0],2),"%")
 # %%
