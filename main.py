@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import seaborn as sns
+from matplotlib import pyplot
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
 #https://towardsdatascience.com/predictive-analysis-rnn-lstm-and-gru-to-predict-water-consumption-e6bb3c2b4b02
 #Defining the working directory for internal functions
 import os, sys
@@ -13,12 +16,7 @@ from utils.data_preparation import DataPreparation
 from utils.feature_engineering import FeatureEngineering
 from utils.correlation_analysis import CorrelationAnalysis
 from utils.split import split_train_test
-from utils.models import ModelARIMA
-from matplotlib import pyplot
-from statsmodels.tsa.arima.model import ARIMA
-from utils.models import ModelLSTM
-
-from pandas.plotting import autocorrelation_plot
+from utils.models import ModelLSTM, ModelXGboost
 
 #%% Data Acquisition
 df = DataAcquisition().get_data()
@@ -44,6 +42,11 @@ y_train = df_train.loc[:,['Close']]
 # Split test data to X and y
 X_test = df_test.drop('Close', axis = 1)
 y_test = df_test.loc[:,['Close']]
+
+X_train_xgb = X_train.copy()
+X_test_xgb = X_test.copy()
+y_train_xgb = y_train.copy()
+y_test_xgb = y_test.copy()
 
 #%% Scaller
 from sklearn.preprocessing import MinMaxScaler
@@ -80,14 +83,12 @@ print('y_test.shape: ', y_test.shape)
 
 
 
-#%% Model   
-model = ModelLSTM(X_train, X_test, y_train, y_test)
+#%% Model LSTM
+model = ModelLSTM(X_train, X_test, y_train)
 model.fit()
 result = model.predict()
 
-# %% Evaluate
-from sklearn.metrics import mean_squared_error
-from sklearn.metrics import mean_absolute_error
+# Evaluate
 predicao = output_scaler.inverse_transform(result.reshape(-1,1))
 real = output_scaler.inverse_transform(y_test.reshape(-1,1))
 mae = mean_absolute_error(predicao, real)
@@ -98,5 +99,25 @@ print('MSE: ', mse)
 percentual_dif = 0
 for r,p in zip(predicao,real):
     percentual_dif += (abs(r-p)/r)
-print('Percentual de erro: +-', round(percentual_dif[0],2),"%")
-# %%
+print('Percentual de erro da LSTM: +-', round(percentual_dif[0],2),"%")
+# %% Model XGBoost
+model = ModelXGboost(X_train_xgb, X_test_xgb, y_train_xgb)
+model.fit()
+result = model.predict()
+predicao = result.copy()
+real = y_test_xgb.values.copy()
+mae = mean_absolute_error(predicao, real)
+mse = mean_squared_error(predicao, real)
+print('MAE: ', mae)
+print('MSE: ', mse)
+#Percentual de erro
+percentual_dif = 0
+for r,p in zip(predicao,real):
+    percentual_dif += (abs(r-p)/r)
+print('Percentual de erro do XGboost: +-', round(percentual_dif[0],2),"%")
+
+# %%Plot the results
+pyplot.plot(real, label = 'Real')
+pyplot.plot(predicao, label = 'Predicted')
+pyplot.legend()
+pyplot.show()
