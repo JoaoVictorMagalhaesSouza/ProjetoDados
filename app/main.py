@@ -9,6 +9,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import MinMaxScaler
 import plotly.graph_objects as go
 import plotly.express as px
+from plotly.subplots import make_subplots
 #https://towardsdatascience.com/predictive-analysis-rnn-lstm-and-gru-to-predict-water-consumption-e6bb3c2b4b02
 #Defining the working directory for internal functions
 import os, sys
@@ -96,7 +97,7 @@ def realizar_predicao(nome_modelo: str):
         result = model.predict()
         predicao = output_scaler.inverse_transform(result.reshape(-1,1))
         real = output_scaler.inverse_transform(y_test.reshape(-1,1))
-        dict_output = {'predicao': predicao, 'real': real, 'index': index}
+        dict_output = {'y_true': real.flatten(),'y_pred': predicao.flatten(), 'index': index}
         return dict_output
         # Evaluate
         # predicao = output_scaler.inverse_transform(result.reshape(-1,1))
@@ -117,7 +118,7 @@ def realizar_predicao(nome_modelo: str):
         model.fit()
         result = model.predict()
         real = y_test_xgb.values.copy()
-        dict_output = {'predicao': result, 'real': real, 'index': index}
+        dict_output = {'y_true': real.flatten(),'y_pred': result, 'index': index}
         return dict_output
 
 
@@ -132,35 +133,56 @@ def realizar_predicao(nome_modelo: str):
     # print('Percentual de erro do XGboost: +-', round(percentual_dif[0],2),"%")
     # make_fig(real.flatten(),predicao,index,'XGboost')
 
-def calcula_metrica(real, predito):
-    mae = mean_absolute_error(predito, real)
-    mse = mean_squared_error(predito, real)
+def calcula_metrica(y_true, y_pred, index):
+    mae = mean_absolute_error(y_pred, y_true)
+    mse = mean_squared_error(y_pred, y_true)
     percentual_dif = 0
-    for r,p in zip(predito,real):
+    for r,p in zip(y_pred,y_true):
          percentual_dif += (abs(r-p)/r)
         
     return mae, mse, percentual_dif
 
 
+
+
+
 def make_fig(y_true,y_pred,index,model_name):
-    trace0 = go.Scattergl(
+    fig = make_subplots(specs=[[{'secondary_y': True}]])
+    fig.add_trace(
+    go.Scatter(
     x=index,
     y=y_true,
     name='BTC Real',
     mode='markers+lines'
-)
-    trace1 = go.Scattergl(
+    ), secondary_y=False)
+
+    
+    fig.add_trace(
+        go.Scatter(
         x=index,
         y=y_pred,
         name='BTC Previsto',
         mode='markers+lines'
-    )
-    layout = {
-    'title': f'Predição do BTC usando {model_name}',
-    'title_x': 0.5,
-    'xaxis': {'title': 'Data'},
-    'yaxis': {'title': 'Valor do BTC'},
-    }
+    ), secondary_y=False)
 
-    fig = go.Figure(data=[trace0, trace1], layout=layout)
-    fig.show()
+   
+
+    fig.update_yaxes(
+        title_text="Preço",
+        
+            secondary_y=False, 
+            gridcolor='#d3d3d3', 
+            zerolinecolor='black')
+
+    fig.update_xaxes(
+        title_text="Data",
+            gridcolor='#d3d3d3', 
+            zerolinecolor='black')
+
+    fig.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(l=100, r=0, b=50, t=50),
+            height=350
+            )
+    return fig
