@@ -10,6 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
+
 #https://towardsdatascience.com/predictive-analysis-rnn-lstm-and-gru-to-predict-water-consumption-e6bb3c2b4b02
 #Defining the working directory for internal functions
 import os, sys
@@ -133,6 +134,7 @@ def realizar_predicao(nome_modelo: str):
     # print('Percentual de erro do XGboost: +-', round(percentual_dif[0],2),"%")
     # make_fig(real.flatten(),predicao,index,'XGboost')
 
+
 def calcula_metrica(y_true, y_pred, index):
     mae = mean_absolute_error(y_pred, y_true)
     mse = mean_squared_error(y_pred, y_true)
@@ -186,3 +188,9 @@ def make_fig(y_true,y_pred,index,model_name):
             height=350
             )
     return fig
+
+'''
+    Criar a aplicação em tempo real
+    Terminar de ajustar a tela
+    Subir a tela.
+'''

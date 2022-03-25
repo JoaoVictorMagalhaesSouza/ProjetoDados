@@ -1,3 +1,4 @@
+from tabnanny import verbose
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.seasonal import seasonal_decompose
 import statsmodels.api as sm
@@ -36,8 +37,10 @@ class ModelXGboost():
         self.x_test = x_test
         self.y_train = y_train
         
+        
     def fit(self):
-        self.model = XGBRegressor(n_estimators=1000, learning_rate=0.2, max_depth=10, random_state=42)
+        self.model = XGBRegressor(n_estimators=1500, learning_rate=0.05, max_depth=12, random_state=42,tree_method='gpu_hist',
+        eval_metric='mae', gamma=0.5, reg_lambda = 0.6, reg_alpha=0.7)
         self.model.fit(self.X_train, self.y_train)
         
     def predict(self):
