@@ -58,81 +58,14 @@ def realizar_predicao(nome_modelo: str):
     index = y_test.index
     # Scaller
 
-    # Different scaler for input and output
-    scaler_x = MinMaxScaler(feature_range = (0,1))
-    scaler_y = MinMaxScaler(feature_range = (0,1))
-    # Fit the scaler using available training data
-    input_scaler = scaler_x.fit(X_train)
-    output_scaler = scaler_y.fit(y_train)
-    # Apply the scaler to training data
-    train_y_norm = output_scaler.transform(y_train)
-    train_x_norm = input_scaler.transform(X_train)
-    # Apply the scaler to test data
-    test_y_norm = output_scaler.transform(y_test)
-    test_x_norm = input_scaler.transform(X_test)
-    # %% 3D input
-
-    def create_dataset (X, y, time_steps = 1):
-        Xs, ys = [], []
-        for i in range(len(X)-time_steps):
-            v = X[i:i+time_steps, :]
-            Xs.append(v)
-            ys.append(y[i+time_steps])
-        return np.array(Xs), np.array(ys)
-    TIME_STEPS = 30
-    X_test, y_test = create_dataset(test_x_norm, test_y_norm,   
-                                    TIME_STEPS)
-    X_train, y_train = create_dataset(train_x_norm, train_y_norm, 
-                                    TIME_STEPS)
-    print('X_train.shape: ', X_train.shape)
-    print('y_train.shape: ', y_train.shape)
-    print('X_test.shape: ', X_test.shape)
-    print('y_test.shape: ', y_test.shape)
-
-    dict_output = {}
-
-    if (nome_modelo == 'LSTM'):
-    # Model LSTM
-        model = ModelLSTM(X_train, X_test, y_train)
-        model.fit()
-        result = model.predict()
-        predicao = output_scaler.inverse_transform(result.reshape(-1,1))
-        real = output_scaler.inverse_transform(y_test.reshape(-1,1))
-        dict_output = {'y_true': real.flatten(),'y_pred': predicao.flatten(), 'index': index}
-        return dict_output
-        # Evaluate
-        # predicao = output_scaler.inverse_transform(result.reshape(-1,1))
-        # real = output_scaler.inverse_transform(y_test.reshape(-1,1))
-        # mae = mean_absolute_error(predicao, real)
-        # mse = mean_squared_error(predicao, real)
-        # print('MAE: ', mae)
-        # print('MSE: ', mse)
-        # #Percentual de erro
-        # percentual_dif = 0
-        # for r,p in zip(predicao,real):
-        #     percentual_dif += (abs(r-p)/r)
-        # print('Percentual de erro da LSTM: +-', round(percentual_dif[0],2),"%")
-        # make_fig(real.flatten(),predicao.flatten(),index,'LSTM')
-    # %% Model XGBoost
-    elif (nome_modelo == 'XGBoost'):
+    
+    if (nome_modelo == 'XGBoost'):
         model = ModelXGboost(X_train_xgb, X_test_xgb, y_train_xgb)
         model.fit()
         result = model.predict()
         real = y_test_xgb.values.copy()
         dict_output = {'y_true': real.flatten(),'y_pred': result, 'index': index}
         return dict_output
-
-
-    # mae = mean_absolute_error(predicao, real)
-    # mse = mean_squared_error(predicao, real)
-    # print('MAE: ', mae)
-    # print('MSE: ', mse)
-    # #Percentual de erro
-    # percentual_dif = 0
-    # for r,p in zip(predicao,real):
-    #     percentual_dif += (abs(r-p)/r)
-    # print('Percentual de erro do XGboost: +-', round(percentual_dif[0],2),"%")
-    # make_fig(real.flatten(),predicao,index,'XGboost')
 
 
 def calcula_metrica(y_true, y_pred, index):
@@ -143,9 +76,6 @@ def calcula_metrica(y_true, y_pred, index):
          percentual_dif += (abs(r-p)/r)
         
     return mae, mse, percentual_dif
-
-
-
 
 
 def make_fig(y_true,y_pred,index,model_name):
