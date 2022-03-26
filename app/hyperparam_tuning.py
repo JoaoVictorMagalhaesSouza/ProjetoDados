@@ -38,36 +38,19 @@ df = df.dropna()
 #%% Merge dataframes
 df = df.merge(df_fe, left_index=True, right_index=True)
 
-# %% Split data
+# %% Split data in 80 %train, 10% val and 10% test
 df = df.dropna()
-#%%
+df_test = df.iloc[(int(len(df)*0.9)):]
+X_test, y_test = df_test.drop('Close', axis = 1), df_test.loc[:,['Close']]
 #Shuffle the data
-shuffled = df.sample(frac=1)
-df = shuffled.copy()
-#%% Normalize the data
-scaler = StandardScaler()
-scaler.fit(df.drop('Close', axis = 1))
-df_scaled = pd.DataFrame(scaler.transform(df.drop('Close', axis = 1)), columns=df.drop('Close', axis = 1).columns)
-df - df_scaled.copy()
-#%%#80%train 20%test
-df_train, df_test = df.iloc[:int(len(df)*0.8)], df.iloc[int(len(df)*0.8):]
-print('Dimension of train data: ',df_train.shape)
-print('Dimension of test data: ', df_test.shape)
-
-# Split train data to X and y
-X_train = df_train.drop('Close', axis = 1)
-y_train = df_train.loc[:,['Close']]
-# Split test data to X and y
-X_test = df_test.drop('Close', axis = 1)
-y_test = df_test.loc[:,['Close']]
-
-X_train_xgb = X_train.copy()
-X_test_xgb = X_test.copy()
-y_train_xgb = y_train.copy()
-y_test_xgb = y_test.copy()
-
-index = y_test.index
-
+df_train_val = df.iloc[:(int(len(df)*0.9))]
+df_shuffled = df_train_val.sample(frac=1)
+df_train_shuffled = df_shuffled.iloc[:(int(len(df_shuffled)*0.8))]
+df_val_shuffled = df_shuffled.iloc[(int(len(df_shuffled)*0.8)):]
+X_train, y_train = df_train_shuffled.drop('Close', axis = 1), df_train_shuffled.loc[:,['Close']]
+X_val, y_val = df_val_shuffled.drop('Close', axis = 1), df_val_shuffled.loc[:,['Close']]
+index_val = y_val.index
+index_test = y_test.index
 
 #%%Plots
 def make_fig(y_true,y_pred,index,model_name):
@@ -94,19 +77,46 @@ def make_fig(y_true,y_pred,index,model_name):
     fig.show()
 
 #%% Model XGBoost
-model = ModelXGboost(X_train_xgb, X_test_xgb, y_train_xgb)
+model = ModelXGboost(X_train, y_train)
 model.fit()
-result = model.predict()
-predicao = result.copy()
-real = y_test_xgb.values.copy()
+#%%Validation
+result_validation = model.predict(X_val)
+predicao = result_validation.copy()
+real = y_val.values.copy()
 mae = mean_absolute_error(predicao, real)
 mse = mean_squared_error(predicao, real)
-print('MAE: ', mae)
-print('MSE: ', mse)
+print('MAE de validação: ', mae)
+print('MSE de validação: ', mse)
 #Percentual de erro
 percentual_dif = 0
 for r,p in zip(predicao,real):
     percentual_dif += (abs(r-p)/r)
-print('Percentual de erro do XGboost: +-', round(percentual_dif[0],2),"%")
-make_fig(real.flatten(),predicao,index,'XGboost')
-#%% 
+print('Percentual de erro do XGboost na validação: +-', round(percentual_dif[0],2),"%")
+make_fig(real.flatten(),predicao,index_val,'XGboost')
+
+#%%Test
+result_test = model.predict(X_test)
+predicao = result_test.copy()
+real = y_test.values.copy()
+mae = mean_absolute_error(predicao, real)
+mse = mean_squared_error(predicao, real)
+print('MAE de teste: ', mae)
+print('MSE de teste: ', mse)
+#Percentual de erro
+percentual_dif = 0
+for r,p in zip(predicao,real):
+    percentual_dif += (abs(r-p)/r)
+print('Percentual de erro do XGboost no teste: +-', round(percentual_dif[0],2),"%")
+make_fig(real.flatten(),predicao,index_test,'XGboost')
+
+#%% Save model
+import pickle
+file_name = "xgb_reg.pkl"
+
+# save
+pickle.dump(model, open(file_name, "wb"))
+
+# load
+xgb_model_loaded = pickle.load(open(file_name, "rb"))
+
+# %%

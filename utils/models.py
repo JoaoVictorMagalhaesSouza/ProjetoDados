@@ -13,9 +13,8 @@ from catboost import CatBoostRegressor
 #Import ARIMA
 
 class ModelLSTM():
-    def __init__(self, X_train, x_test, y_train):
+    def __init__(self, X_train, y_train):
         self.X_train = X_train
-        self.x_test = x_test
         self.y_train = y_train
         self.model = Sequential()
         self.model.add(LSTM(46,return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))    
@@ -27,14 +26,13 @@ class ModelLSTM():
         print("X_train shape: ", self.X_train.shape)
         self.model.fit(self.X_train, self.y_train, epochs=100, batch_size=32)
     
-    def predict(self):
-        self.y_pred = self.model.predict(self.x_test).flatten()
+    def predict(self, X_test_xgb):
+        self.y_pred = self.model.predict(X_test_xgb).flatten()
         return self.y_pred
     
 class ModelXGboost():
-    def __init__(self, X_train, x_test, y_train):
+    def __init__(self, X_train, y_train):
         self.X_train = X_train
-        self.x_test = x_test
         self.y_train = y_train
         
         
@@ -43,8 +41,8 @@ class ModelXGboost():
         eval_metric='mae', gamma=0.5, reg_lambda = 0.6, reg_alpha=0.7)
         self.model.fit(self.X_train, self.y_train)
         
-    def predict(self):
-        self.y_pred = self.model.predict(self.x_test)
+    def predict(self, X_test_xgb):
+        self.y_pred = self.model.predict(X_test_xgb)
         return self.y_pred
 
 class ModelCatboost():
