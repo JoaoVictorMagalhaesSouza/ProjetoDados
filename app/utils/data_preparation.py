@@ -12,8 +12,9 @@ class DataPreparation():
         """
         target = 'Close'
         if (normalization_type == 'std'):
-            df_target_droped = self.data.drop(columns={target})
-            self.data[df_target_droped.columns] =  (df_target_droped - df_target_droped.mean()) / df_target_droped.std()
+            # df_target_droped = self.data.drop(columns={target})
+            # self.data[df_target_droped.columns] =  (df_target_droped - df_target_droped.mean()) / df_target_droped.std()
+            self.data = self.data
 
         elif (normalization_type == 'min_max'):
             df_target_droped = self.data.drop(columns={target})

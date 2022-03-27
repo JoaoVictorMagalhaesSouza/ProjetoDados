@@ -1,14 +1,7 @@
-# Imports
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import seaborn as sns
-from matplotlib import pyplot
+
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
-from sklearn.preprocessing import MinMaxScaler
 import plotly.graph_objects as go
-import plotly.express as px
 from plotly.subplots import make_subplots
 
 #https://towardsdatascience.com/predictive-analysis-rnn-lstm-and-gru-to-predict-water-consumption-e6bb3c2b4b02
@@ -19,9 +12,7 @@ sys.path.insert(0,dir_import+'/../')
 from utils.data_acquisition import DataAcquisition
 from utils.data_preparation import DataPreparation
 from utils.feature_engineering import FeatureEngineering
-from utils.correlation_analysis import CorrelationAnalysis
-from utils.split import split_train_test
-from utils.models import ModelLSTM, ModelXGboost, ModelCatboost
+from utils.models import  ModelXGboost
 
 def realizar_predicao(nome_modelo: str):
 

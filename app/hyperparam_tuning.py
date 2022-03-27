@@ -1,9 +1,4 @@
 #%% Imports
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import seaborn as sns
-from matplotlib import pyplot
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import MinMaxScaler
@@ -17,13 +12,9 @@ sys.path.insert(0,dir_import+'/../')
 from utils.data_acquisition import DataAcquisition
 from utils.data_preparation import DataPreparation
 from utils.feature_engineering import FeatureEngineering
-from utils.correlation_analysis import CorrelationAnalysis
-from utils.split import split_train_test
-from utils.models import ModelLSTM, ModelXGboost, ModelCatboost
-import optuna
-import xgboost as xgb
+from utils.models import ModelXGboost
 #Import standard scaller
-from sklearn.preprocessing import StandardScaler
+
 
 #%% Data Acquisition
 df = DataAcquisition().get_data()
