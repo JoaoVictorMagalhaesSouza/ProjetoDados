@@ -34,37 +34,29 @@ def realizar_predicao(nome_modelo: str):
     df_fe = FeatureEngineering(df).pipeline_feat_eng()
     # Merge dataframes
     df = df.merge(df_fe, left_index=True, right_index=True)
-    # Correlation Analysis -  A fazer :
+   
 
-    # %% Split data
     df = df.dropna()
-    #80%train 20%test
-    df_train, df_test = df.iloc[:int(len(df)*0.8)], df.iloc[int(len(df)*0.8):]
-    print('Dimension of train data: ',df_train.shape)
-    print('Dimension of test data: ', df_test.shape)
-
-    # Split train data to X and y
-    X_train = df_train.drop('Close', axis = 1)
-    y_train = df_train.loc[:,['Close']]
-    # Split test data to X and y
-    X_test = df_test.drop('Close', axis = 1)
-    y_test = df_test.loc[:,['Close']]
-
-    X_train_xgb = X_train.copy()
-    X_test_xgb = X_test.copy()
-    y_train_xgb = y_train.copy()
-    y_test_xgb = y_test.copy()
-
-    index = y_test.index
+    df_test = df.iloc[(int(len(df)*0.9)):]
+    X_test, y_test = df_test.drop('Close', axis = 1), df_test.loc[:,['Close']]
+    #Shuffle the data
+    df_train_val = df.iloc[:(int(len(df)*0.9))]
+    df_shuffled = df_train_val.sample(frac=1)
+    df_train_shuffled = df_shuffled.iloc[:(int(len(df_shuffled)*0.8))]
+    df_val_shuffled = df_shuffled.iloc[(int(len(df_shuffled)*0.8)):]
+    X_train, y_train = df_train_shuffled.drop('Close', axis = 1), df_train_shuffled.loc[:,['Close']]
+    X_val, y_val = df_val_shuffled.drop('Close', axis = 1), df_val_shuffled.loc[:,['Close']]
+    index_val = y_val.index
+    index_test = y_test.index
     # Scaller
 
     
     if (nome_modelo == 'XGBoost'):
-        model = ModelXGboost(X_train_xgb, X_test_xgb, y_train_xgb)
+        model = ModelXGboost(X_train, y_train)
         model.fit()
-        result = model.predict()
-        real = y_test_xgb.values.copy()
-        dict_output = {'y_true': real.flatten(),'y_pred': result, 'index': index}
+        result = model.predict(X_test)
+        real = y_test.values.copy()
+        dict_output = {'y_true': real.flatten(),'y_pred': result, 'index': index_test}
         return dict_output
 
 
@@ -85,7 +77,8 @@ def make_fig(y_true,y_pred,index,model_name):
     x=index,
     y=y_true,
     name='BTC Real',
-    mode='markers+lines'
+    mode='markers+lines',
+    marker_color='#000000',
     ), secondary_y=False)
 
     
@@ -94,7 +87,8 @@ def make_fig(y_true,y_pred,index,model_name):
         x=index,
         y=y_pred,
         name='BTC Previsto',
-        mode='markers+lines'
+        mode='markers+lines',
+        marker_color='#fd5800',#'#ccff33',
     ), secondary_y=False)
 
    
@@ -115,7 +109,8 @@ def make_fig(y_true,y_pred,index,model_name):
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
             margin=dict(l=100, r=0, b=50, t=50),
-            height=350
+            height=350,
+            title={'text': 'Previsão do BTC - Conjunto de Testes', 'y':0.9, 'x':0.5, 'xanchor': 'center', 'yanchor': 'top'},
             )
     return fig
 
