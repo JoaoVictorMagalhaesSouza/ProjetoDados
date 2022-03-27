@@ -23,21 +23,24 @@ def realizar_predicao(nome_modelo: str):
 
     # Feature Engineering
     df_fe = FeatureEngineering(df).pipeline_feat_eng()
+    df['Close_Yesterday'] = df['Close'].shift(1)
+    df['Close_Tomorrow'] = df['Close'].shift(-1)
+    df = df.drop('Adj Close', axis = 1)
+    
     # Merge dataframes
     df = df.merge(df_fe, left_index=True, right_index=True)
    
 
+    
     df = df.dropna()
     df_test = df.iloc[(int(len(df)*0.9)):]
-    X_test, y_test = df_test.drop('Close', axis = 1), df_test.loc[:,['Close']]
+    X_test, y_test = df_test.drop('Close_Tomorrow', axis = 1), df_test.loc[:,['Close_Tomorrow']]
     #Shuffle the data
     df_train_val = df.iloc[:(int(len(df)*0.9))]
     df_shuffled = df_train_val.sample(frac=1)
-    df_train_shuffled = df_shuffled.iloc[:(int(len(df_shuffled)*0.8))]
-    df_val_shuffled = df_shuffled.iloc[(int(len(df_shuffled)*0.8)):]
-    X_train, y_train = df_train_shuffled.drop('Close', axis = 1), df_train_shuffled.loc[:,['Close']]
-    X_val, y_val = df_val_shuffled.drop('Close', axis = 1), df_val_shuffled.loc[:,['Close']]
-    index_val = y_val.index
+    df_train_shuffled = df_shuffled
+    X_train, y_train = df_train_shuffled.drop('Close_Tomorrow', axis = 1), df_train_shuffled.loc[:,['Close_Tomorrow']]
+    
     index_test = y_test.index
     # Scaller
 

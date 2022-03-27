@@ -49,10 +49,24 @@ class FeatureEngineering():
 
         for col in df_poly.columns:
             self.df_fe[col] = df_poly[col].values
+    
+    def difference(self):
+        df_final = pd.DataFrame()
+        df_final['high-low'] = self.data['High'] - self.data['Low']
+        df_final['high-close'] = self.data['High'] - self.data['Close']
+        df_final['low-close'] = self.data['Low'] - self.data['Close']
+        df_final['close-open'] = self.data['Close'] - self.data['Open']
+        df_final['high-open'] = self.data['High'] - self.data['Open']
+        df_final['low-open'] = self.data['Low'] - self.data['Open']
+
+        self.df_fe = self.df_fe.merge(df_final, left_index=True, right_index=True)
+
+
 
     def pipeline_feat_eng(self):
         self.derivada()
         self.integral()
         self.momentos_estatisticos()
         self.combinacoes_polinomiais()
+        self.difference()
         return self.df_fe.copy()

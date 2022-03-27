@@ -16,40 +16,23 @@ from utils.models import  ModelXGboost
 
 def real_time_prediction():
 
-    # Data Acquisition
     df = DataAcquisition().get_data()
-    # %% Data Preparation
     df = DataPreparation(df).normalize_data()
-
-    # Feature Engineering
     df_fe = FeatureEngineering(df).pipeline_feat_eng()
     df['Close_Yesterday'] = df['Close'].shift(1)
-    df = df.dropna()
-    # Merge dataframes
+    df['Close_Tomorrow'] = df['Close'].shift(-1)
+    df = df.drop('Adj Close', axis = 1)
     df = df.merge(df_fe, left_index=True, right_index=True)
+    
     df_test = df.tail(1)
-    #Shuffle the data
-    shuffled = df.sample(frac=1)
-    df = shuffled.copy()
-    
+    X_test = df_test.drop('Close_Tomorrow', axis = 1)
 
-    #Get the last line
-    
-    df_train = df.iloc[:-1]
-    X_train, y_train = df_train.drop('Close', axis = 1), df_train.loc[:,['Close']]
-    X_test = df_test.drop('Close', axis = 1)
-
-    X_train_xgb = X_train.copy()
-    X_test_xgb = X_test.copy()
-    y_train_xgb = y_train.copy()
-    
-
-    
-
-    
-    model = ModelXGboost(X_train_xgb, y_train_xgb)
+    df_train_val = df.iloc[:-1]
+    df_shuffled = df_train_val.sample(frac=1)
+    X_train, y_train = df_shuffled.drop('Close_Tomorrow', axis = 1), df_shuffled.loc[:,['Close_Tomorrow']]
+    model = ModelXGboost(X_train, y_train)
     model.fit()
-    result = model.predict(X_test_xgb)[0]
+    result = model.predict(X_test)[0]
     #import pickle
     #xgb_model_loaded = pickle.load(open('xgb_reg.pkl', "rb"))
     #result = xgb_model_loaded.predict(X_test_xgb)[0]
