@@ -3,6 +3,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import pandas as pd
 
 #https://towardsdatascience.com/predictive-analysis-rnn-lstm-and-gru-to-predict-water-consumption-e6bb3c2b4b02
 #Defining the working directory for internal functions
@@ -51,7 +52,8 @@ def realizar_predicao(nome_modelo: str):
         result = model.predict(X_test)
         real = y_test.values.copy()
         dict_output = {'y_true': real.flatten(),'y_pred': result, 'index': index_test}
-        return dict_output
+        print(pd.DataFrame(dict_output))
+        return pd.DataFrame(dict_output)
 
 
 def calcula_metrica(y_true, y_pred, index):
@@ -64,8 +66,9 @@ def calcula_metrica(y_true, y_pred, index):
     return mae, mse, percentual_dif
 
 
-def make_fig(y_true,y_pred,index,model_name):
+def make_fig(dataframe):
     fig = make_subplots(specs=[[{'secondary_y': True}]])
+    y_true,y_pred,index = dataframe.y_true, dataframe.y_pred, dataframe['index']
     fig.add_trace(
     go.Scatter(
     x=index,

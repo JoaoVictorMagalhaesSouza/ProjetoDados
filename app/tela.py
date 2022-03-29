@@ -2,14 +2,16 @@ import dash
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 import dash_core_components as dcc
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import main
 from utils.style import create_big_card
 import chart_real_time as crt
 import predict_real_time as prt
 
-global dict_predict
-dict_predict = main.realizar_predicao('XGBoost')
+import pandas as pd
+
+
+
 def init_app(server):
     app = dash.Dash(
         __name__, 
@@ -61,28 +63,42 @@ def init_app(server):
     
     app.layout = html.Div([
         dcc.Location(id="url"),
+        dcc.Store(id='dados_predicao'),
+        dcc.Interval(id='interval-att', interval=86400000, n_intervals=0), #24hrs
         sidebar,
-        content,
+        content,       
         
     ])
+   
+    
+    @app.callback(
+        Output('dados_predicao','data'),
+        Input('interval-att', 'n_intervals')
+    )
+    def att_graph(n):
+        print("Atualizando predição...")
+        return main.realizar_predicao('XGBoost').to_json(date_format='iso')
 
     @app.callback(
     Output("page-content", "children"),
-    [Input("url", "pathname")]
+    
+    Input("url", "pathname"),
+    Input('dados_predicao', 'data')
     )
-    def render_page_content(pathname):
+    def render_page_content(pathname, dados):
+        dados = pd.read_json(dados, dtype=dict(TS='datetime64[ns]'))
         if pathname == "/":
             return [
                     
                     html.Div([
-                        dcc.Graph(figure=main.make_fig(**dict_predict,model_name="XGBoost"))],
+                        dcc.Graph(figure=main.make_fig(dados))],
                         id='xgboost-chart', style={'border-color':'#fd5800', 'border-style':'solid','height':'450px', 'width':'100%', 'border-width':'6pxpx', 'padding':'10px',
                         'box-shadow':'0px 8px 16px 0px rgba(0,0,0,0.2)', 'transition': '0.3s','border-radius':'10px'}),
                     html.Br(),
                     html.Div([
                         dbc.Col(
                             dbc.Card(
-                                f"MAE: {round(main.calcula_metrica(**dict_predict)[0],2)}", color="#fd5800", inverse=True,outline=True, style={'height':'100px', 'width':'120px', 'border-radius':'10px', 'text-align':'center', 
+                                f"MAE: {round(main.calcula_metrica(dados.y_true,dados.y_pred, dados.index)[0],2)}", color="#fd5800", inverse=True,outline=True, style={'height':'100px', 'width':'120px', 'border-radius':'10px', 'text-align':'center', 
                         'padding':'10px', 'align-items':'center', 'justify-content':'center', 'font-size':'20px', 'font-weight':'bold',
                         'color':'#2fa4e7', 'box-shadow':'0px 8px 16px 0px rgba(0,0,0,0.2)', 'transition': '0.3s', 'margin-right':'5px !important'
                         
@@ -94,7 +110,7 @@ def init_app(server):
                         ),
                          dbc.Col(
                         dbc.Card(
-                                f"%ERRO: {round(main.calcula_metrica(**dict_predict)[2],2)}", color="#fd5800", inverse=True, outline=True, style={'height':'100px', 'width':'120px', 'border-radius':'10px', 'text-align':'center', 
+                                f"%ERRO: {round(main.calcula_metrica(dados.y_true,dados.y_pred, dados.index)[2],2)}", color="#fd5800", inverse=True, outline=True, style={'height':'100px', 'width':'120px', 'border-radius':'10px', 'text-align':'center', 
                         'padding':'10px', 'align-items':'center', 'justify-content':'center', 'font-size':'20px', 'font-weight':'bold', 'left':'100px',
                         'color':'#2fa4e7', 'box-shadow':'0px 8px 16px 0px rgba(0,0,0,0.2)', 'transition': '0.3s', 'margin-right':'5px !important'
                         
@@ -105,7 +121,7 @@ def init_app(server):
                          ),
                          dbc.Col(
                         dbc.Card(
-                                f"MSE: {round(main.calcula_metrica(**dict_predict)[1],2)}", color="#fd5800", inverse=True,outline=True, style={'height':'100px', 'width':'120px', 'border-radius':'10px', 'text-align':'center', 
+                                f"MSE: {round(main.calcula_metrica(dados.y_true,dados.y_pred, dados.index)[1],2)}", color="#fd5800", inverse=True,outline=True, style={'height':'100px', 'width':'120px', 'border-radius':'10px', 'text-align':'center', 
                         'padding':'10px', 'align-items':'center', 'justify-content':'center', 'font-size':'20px', 'font-weight':'bold', 'left':'275px',
                         'color':'#2fa4e7', 'box-shadow':'0px 8px 16px 0px rgba(0,0,0,0.2)', 'transition': '0.3s', 'margin-right':'5px'
                         
@@ -133,17 +149,6 @@ def init_app(server):
             
             ]
         
-
-
-        dcc.Interval(id='interval-component', interval=90000000, n_intervals=0)
-        @app.callback(
-            Output('xgboost-chart-rt', 'figure'),
-            Output('xgboost-chart', 'figure'),
-            Input('acquisition-interval', 'n_intervals')
-        )
-        def att_graph(n):
-            prt.real_time_prediction()
-            dict_predict = main.realizar_predicao('XGBoost')
-            return crt.make_fig_rt()
+        
     
     return app
