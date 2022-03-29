@@ -47,8 +47,8 @@ def init_app(server):
         # ),
         dbc.Nav(
             [
-                dbc.NavLink("Histórico", href="/", active="exact"),
-                dbc.NavLink("Desempenho prático", href='/real-time', active="exact"),
+                dbc.NavLink("XGBoost - History", href="/", active="exact"),
+                dbc.NavLink("XGBoost - Real time", href='/real-time', active="exact"),
             ],
             vertical=True,
             pills=True,
@@ -106,7 +106,7 @@ def init_app(server):
                          dbc.Col(
                         dbc.Card(
                                 f"MSE: {round(main.calcula_metrica(**dict_predict)[1],2)}", color="#fd5800", inverse=True,outline=True, style={'height':'100px', 'width':'120px', 'border-radius':'10px', 'text-align':'center', 
-                        'padding':'10px', 'align-items':'center', 'justify-content':'center', 'font-size':'20px', 'font-weight':'bold', 'left':'235px',
+                        'padding':'10px', 'align-items':'center', 'justify-content':'center', 'font-size':'20px', 'font-weight':'bold', 'left':'275px',
                         'color':'#2fa4e7', 'box-shadow':'0px 8px 16px 0px rgba(0,0,0,0.2)', 'transition': '0.3s', 'margin-right':'5px'
                         
                             }
