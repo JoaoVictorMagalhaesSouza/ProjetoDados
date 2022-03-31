@@ -77,6 +77,9 @@ def init_app(server):
     )
     def att_graph(n):
         print("Atualizando predição...")
+        if (n>0):
+            print("Atualizando dados da predição em tempo real.")
+            prt.real_time_prediction()
         return main.realizar_predicao('XGBoost').to_json(date_format='iso')
 
     @app.callback(
@@ -122,7 +125,7 @@ def init_app(server):
                          dbc.Col(
                         dbc.Card(
                                 f"MSE: {round(main.calcula_metrica(dados.y_true,dados.y_pred, dados.index)[1],2)}", color="#fd5800", inverse=True,outline=True, style={'height':'100px', 'width':'120px', 'border-radius':'10px', 'text-align':'center', 
-                        'padding':'10px', 'align-items':'center', 'justify-content':'center', 'font-size':'20px', 'font-weight':'bold', 'left':'275px',
+                        'padding':'10px', 'align-items':'center', 'justify-content':'center', 'font-size':'20px', 'font-weight':'bold', 'left':'225px',
                         'color':'#2fa4e7', 'box-shadow':'0px 8px 16px 0px rgba(0,0,0,0.2)', 'transition': '0.3s', 'margin-right':'5px'
                         
                             }

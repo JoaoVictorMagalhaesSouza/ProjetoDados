@@ -11,7 +11,6 @@ from utils.data_acquisition import DataAcquisition
 from utils.data_preparation import DataPreparation
 from utils.feature_engineering import FeatureEngineering
 from utils.models import ModelXGboost
-from utils.models import ModelLSTM
 import numpy as np
 #Import standard scaller
 from plotly.subplots import make_subplots

@@ -3,13 +3,16 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pickle
+from utils.database import cria_conexão_banco
 def make_fig_rt():
-    data = pd.read_csv('metricas_diarias.csv')
+    connect = cria_conexão_banco()
+    query = 'SELECT * FROM dados_tempo_real'
+    data = pd.read_sql(query, connect)
     fig = make_subplots(specs=[[{'secondary_y': True}]])
     fig.add_trace(
     go.Scatter(
-    x=data['Data'],
-    y=data['Preco Real'],
+    x=data['TS'],
+    y=data['BTCReal'],
     name='BTC Real',
     mode='markers+lines',
     marker_color='#000000',
@@ -18,8 +21,8 @@ def make_fig_rt():
     
     fig.add_trace(
         go.Scatter(
-        x=data["Data"],
-        y=data["Preco Previsto"].astype(float),
+        x=data["TS"],
+        y=data["BTCPrevisto"].astype(float),
         name='BTC Previsto',
         mode='markers+lines',
         marker_color='#fd5800',#'#ccff33',

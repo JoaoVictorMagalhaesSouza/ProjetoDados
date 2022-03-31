@@ -10,4 +10,4 @@ def my_dash_app():
     return app_dash.index()
 
 if __name__=='__main__':
-    app_dash.run_server(host='0.0.0.0',port=8050,debug=True)
+    app_dash.run_server(host='0.0.0.0',port=8050,debug=False)

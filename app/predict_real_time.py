@@ -10,9 +10,9 @@ sys.path.insert(0,dir_import+'/../')
 from utils.data_acquisition import DataAcquisition
 from utils.data_preparation import DataPreparation
 from utils.feature_engineering import FeatureEngineering
-
+import pandas as pd
 from utils.models import  ModelXGboost
-
+from utils.database import cria_conexão_banco
 
 def real_time_prediction():
 
@@ -36,10 +36,26 @@ def real_time_prediction():
     #import pickle
     #xgb_model_loaded = pickle.load(open('xgb_reg.pkl', "rb"))
     #result = xgb_model_loaded.predict(X_test_xgb)[0]
-    today = datetime.datetime.today().strftime('%Y-%m-%d')
-    #Increment result in csv
-    with open('metricas_diarias.csv', 'a') as f:
-        writer = csv.writer(f)
-        writer.writerow([today, result])
+    tomorrow = datetime.datetime.today() + datetime.timedelta(days=1)
+    tomorrow = tomorrow.strftime("%Y-%m-%d %H:%M:%S")
+    connect = cria_conexão_banco()
+    preco_real = df['Close'][-1]
+    query_update = f"UPDATE dados_tempo_real SET BTCReal = {preco_real} WHERE TS=(SELECT MAX(TS) FROM dados_tempo_real)"
+    #Send to databasef
+    try:
+        cursor = connect.cursor()
+        cursor.execute(query_update)
+        connect.commit()
+    except Exception as e:
+        print(e)
+        connect.rollback()
+    query_insert = f"INSERT INTO dados_tempo_real (TS, BTCReal, BTCPrevisto) VALUES ('{tomorrow}', {'NULL'}, '{result}')"
+    try:
+        cursor = connect.cursor()
+        cursor.execute(query_insert)
+        connect.commit()
+    except Exception as e:
+        print(e)
+        connect.rollback()
     
     
